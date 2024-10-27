@@ -1,0 +1,376 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Assets.PixelHeroes.Scripts.CharacterScripts;
+
+using AnimationState = Assets.PixelHeroes.Scripts.CharacterScripts.AnimationState;
+using UnityEngine.Pool;
+
+public class MonsterAI : MonoBehaviour
+{
+    
+    public Monster Character;
+    public SpriteRenderer Sprite;
+    Fading_Monster fade;
+    public int randomMove;
+    public float thinktime=5f;
+    private float RunSpeed = 1f;
+    public Vector2 _motion = Vector2.zero;
+    
+
+    public Rigidbody Rigidbody;
+    public Collider colli;
+    
+    private float _activityTime;
+    public ParticleSystem MoveDust;
+    public ParticleSystem JumpDust;
+
+    public bool think;
+    //public bool touchLadder;
+   // public bool Up;
+    //public bool Down;
+    public bool RandomLadder;
+    public bool GStart;
+
+    public int Monster;
+
+   private GameObject WallL;
+    private GameObject WallR;
+    private Collider WallLeft;
+    private Collider WallRight;
+
+    public UpandDownMonsterAI UpDown;
+
+
+    private IObjectPool<MonsterAI> Managepool;
+    void Awake()
+    {
+        fade=GetComponent<Fading_Monster>();
+        Rigidbody = GetComponent<Rigidbody>();
+        colli  = GetComponent<Collider>();
+        WallL = GameObject.Find("WallLeft");
+        WallR = GameObject.Find("WallRight");
+        WallLeft = WallL.GetComponent<Collider>();
+        WallRight = WallR.GetComponent<Collider>();
+
+
+        Monster = LayerMask.NameToLayer("monster");
+        Physics.IgnoreLayerCollision(Monster,Monster, true);
+        Physics.IgnoreCollision(colli, WallRight,true);
+        Physics.IgnoreCollision(colli, WallLeft,true);
+
+
+    }
+    private void OnEnable()
+    {
+        
+       
+        Physics.IgnoreCollision(colli, WallRight, true);
+        Physics.IgnoreCollision(colli, WallLeft, true);
+        colli.isTrigger = false;
+        Rigidbody.useGravity = true;
+        GStart = false;
+        Sprite.material.color = Color.white;
+        think = false;
+        if (Character.transform.position.x > 0)
+        {
+            randomMove = -1;
+        }
+        else
+        {
+            randomMove = 1;
+
+        }
+
+    }
+    private void Start()
+    {
+       
+        if (Character.transform.position.x > 0)
+        {
+            randomMove = -1;
+        }
+        else
+        {
+            randomMove = 1;
+
+        }
+        
+    }
+   
+
+
+    void FixedUpdate()
+    {
+        //if (Character.GetState() == AnimationState.Dead) Debug.Log("Dead");
+        /*if (GameManager.instance.isGameover) 
+        {
+            Debug.Log("GameOver");
+            Stopped();
+        }*/
+        if (Character.GetState() == AnimationState.Dead)
+            return;
+        if(!GameManager.instance.isGameover)
+            Move();
+        if (!think &&GStart)
+        {
+            think = true;
+            StartCoroutine(Think(thinktime));
+        }
+         
+
+    }
+    public IEnumerator Think(float time)
+    {
+        randomMove = GenerateRandomNumber(-1, 2);
+        RandomLadder = (Random.value< 0.3);
+        
+        yield return new WaitForSeconds(time);
+        thinktime=Random.Range(2f, 8f);
+        think = false;
+       
+    }
+    private List<int> exclusionList = new List<int>() { 0 }; //제외할 값
+
+    private int GenerateRandomNumber(int min, int max)
+    {
+        int randomValue = Random.Range(-1, 2);
+        while (exclusionList.Contains(randomValue))
+        {
+            randomValue = Random.Range(min, max);
+        }
+        return randomValue;
+    }
+
+
+    private void Move()
+    {
+        if (Time.frameCount <= 1)
+        {
+            Rigidbody.velocity = new Vector3(0, Rigidbody.velocity.y);
+        }
+        if ( randomMove != 0)
+        {
+            Turn(randomMove);
+        }
+
+        var state = Character.GetState();
+        /* (state == AnimationState.j)
+        {
+            Character.Animator.SetTrigger("Landed");
+            Character.SetState(AnimationState.Ready);
+            JumpDust.Play(true);
+
+        }*/
+
+        _motion = new Vector3(randomMove*RunSpeed, Rigidbody.velocity.y);
+
+        if (randomMove != 0)
+        {
+            switch (state)
+            {
+                case AnimationState.Idle:
+                case AnimationState.Ready:
+                    Character.SetState(AnimationState.Running);
+                    break;
+            }
+
+        }
+        else
+        {
+            switch (state)
+            {
+                case AnimationState.Climbing:
+                    break;
+                default:
+                    var targetState = Time.time - _activityTime > 5 ? AnimationState.Idle : AnimationState.Ready;
+
+                    if (state != targetState)
+                    {
+                        Character.SetState(targetState);
+                    }
+                    break;
+            }
+        }
+        if (UpDown.touchLadder)
+        {
+            Character.Animator.SetBool("Grounded", false);
+            if (UpDown.Up)
+            {
+                UpMove();
+            }
+            else if (UpDown.Down)
+            {
+                DownMove();
+            }
+            UpDown.transform.localPosition = new Vector2(0f, 0.025f);
+            UpDown.transform.localScale = new Vector3(0.25f, 0.05f, 0.05f);
+
+        }
+        else
+        {
+            //캐릭터 노말이동
+            
+            Rigidbody.velocity = _motion;
+            Character.Animator.SetBool("Grounded", true);
+            Character.Animator.SetBool("Climbing", false);
+        }
+        
+        Character.Animator.SetBool("Moving",randomMove != 0);
+        
+
+        //이펙트
+        if (!Mathf.Approximately(Rigidbody.velocity.x, 0))
+        {
+            var velocity = MoveDust.velocityOverLifetime;
+
+            velocity.xMultiplier = 0.2f * -Mathf.Sign(Rigidbody.velocity.x);
+
+            if (!MoveDust.isPlaying)
+            {
+                MoveDust.Play();
+            }
+        }
+        else
+        {
+            MoveDust.Stop();
+        }
+
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.tag == "GStart")
+        {
+            GStart = true;
+            Physics.IgnoreCollision(colli, WallLeft,false);
+            Physics.IgnoreCollision(colli, WallRight, false);
+        }
+    }
+
+    private void Turn(int direction)
+    {
+        /*var scale = Character.transform.localScale;
+
+        scale.x = Mathf.Sign(direction) * Mathf.Abs(scale.x);
+
+        Character.transform.localScale = scale;*/
+        if (direction == 1)
+        {
+            Sprite.flipX = false;
+            UpDown.transform.localPosition = new Vector2(-0.05f, 0.025f);
+        }
+            
+        else
+        {
+            Sprite.flipX = true;
+            UpDown.transform.localPosition = new Vector2(0.05f, 0.025f);
+        }
+        if (!UpDown.Up && !UpDown.Down)
+            UpDown.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
+
+
+    }
+    /*private void OnTriggerEnter(Collider collision)
+    {
+
+        if (collision.gameObject.tag == "Ladder")
+        {
+            if (!RandomLadder) return;
+
+            if (collision.gameObject.name == "UpPoint" && Down == false)
+            {
+                StopCoroutine(Think(thinktime));
+                think = true;
+                Up = true;
+            }
+            else if (collision.gameObject.name == "DownPoint" && Up == false)
+            {
+                StopCoroutine(Think(thinktime));
+                think = true;
+                Down = true;
+            }
+
+            Ladder();
+        }
+    }*/
+    private void UpMove()
+    {
+        Character.SetState(AnimationState.Climbing);
+        Rigidbody.velocity = Vector3.zero;
+        _motion.y = 1;
+        _motion = new Vector3(0, _motion.y * RunSpeed);
+        Rigidbody.velocity = _motion;
+    }
+    private void DownMove()
+    {
+        Character.SetState(AnimationState.Climbing);
+        Rigidbody.velocity = Vector3.zero;
+        
+        _motion.y = -1;
+        _motion = new Vector3(0, _motion.y * RunSpeed);
+       
+        Rigidbody.velocity = _motion;
+
+    }
+
+
+    
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.tag == "Player")
+        {
+            Character.Animator.SetTrigger("Hit");
+          
+            Character.SetState(AnimationState.Dead);
+            Stopped();
+            fade.Fadings();
+            GameManager.instance.AddScore(1);
+
+        }
+        if (collision.gameObject.tag == "NPC")
+        {
+            
+            Attack();
+        }
+
+        if(collision.gameObject.layer == 8)
+        {
+            
+            randomMove *= -1;
+
+
+        }
+       
+    }
+    private void Attack()
+    {
+        Character.Animator.SetTrigger("Slash");
+
+    }
+    private void Stopped()
+    {  
+        StopAllCoroutines();
+        colli.isTrigger = true;
+        Rigidbody.useGravity = false;
+        _motion = Vector2.zero;
+        Rigidbody.velocity = Vector2.zero;
+        
+       
+    }
+   
+
+    public void SetManagedPool(IObjectPool<MonsterAI> pool)
+    {
+        Managepool = pool;
+    }
+
+    public void DestroyMonster()
+    {
+        Managepool.Release(this);
+       
+    }
+
+}
+

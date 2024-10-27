@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@string/firebase_database_url,@string/gcm_defaultSenderId,@string/google_storage_bucket,@string/project_id,@string/google_api_key,@string/google_crash_reporting_api_key,@string/google_app_id,@string/default_android_client_id,@string/default_web_client_id">
+  <string name="firebase_database_url" translatable="false">https://joluphab-default-rtdb.firebaseio.com</string>
+  <string name="gcm_defaultSenderId" translatable="false">444397110655</string>
+  <string name="google_storage_bucket" translatable="false">joluphab.appspot.com</string>
+  <string name="project_id" translatable="false">joluphab</string>
+  <string name="google_api_key" translatable="false">AIzaSyCk3t2b6Il0yODHanhVFX7pcWohGSyDFmY</string>
+  <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCk3t2b6Il0yODHanhVFX7pcWohGSyDFmY</string>
+  <string name="google_app_id" translatable="false">1:444397110655:android:93a26c752bcd17a3ad064a</string>
+  <string name="default_android_client_id" translatable="false">444397110655-t11vshaa563dcgqakkiq02qkvtbn5iv5.apps.googleusercontent.com</string>
+  <string name="default_web_client_id" translatable="false">444397110655-mv02scp1t0m8h4bhfbos7f7s7ojm264h.apps.googleusercontent.com</string>
+</resources>

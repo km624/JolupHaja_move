@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "444397110655",
+    "firebase_url": "https://joluphab-default-rtdb.firebaseio.com",
+    "project_id": "joluphab",
+    "storage_bucket": "joluphab.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:444397110655:android:93a26c752bcd17a3ad064a",
+        "android_client_info": {
+          "package_name": "com.nghy23.JolUp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "444397110655-t11vshaa563dcgqakkiq02qkvtbn5iv5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nghy23.JolUp",
+            "certificate_hash": "cf70a02bcaf054a28bccdf5b997024fc8c4e4517"
+          }
+        },
+        {
+          "client_id": "444397110655-mv02scp1t0m8h4bhfbos7f7s7ojm264h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCk3t2b6Il0yODHanhVFX7pcWohGSyDFmY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "444397110655-mv02scp1t0m8h4bhfbos7f7s7ojm264h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
